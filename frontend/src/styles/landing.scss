@@ -1,0 +1,162 @@
+
+.landing {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+
+  background: linear-gradient(135deg, #0b0b12, #0f172a);
+}
+
+/* CONTAINER */
+.landing-container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* GLOW */
+.bg-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  filter: blur(120px);
+  opacity: 0.3;
+  border-radius: 50%;
+}
+
+.glow1 { background: #6366f1; top: -100px; left: -100px; }
+.glow2 { background: #22c55e; bottom: -100px; right: -100px; }
+
+/* HERO */
+.hero {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #94a3b8;
+    max-width: 600px;
+  }
+}
+
+/* BUTTONS */
+.hero-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.primary {
+  background: #6366f1;
+  color: white;
+  border: none;
+}
+
+.outline {
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  background: transparent;
+}
+
+/* STATS */
+.hero-stats {
+  margin-top: 25px;
+  display: flex;
+  gap: 30px;
+
+  div {
+    text-align: center;
+
+    strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    span {
+      font-size: 12px;
+      color: #64748b;
+    }
+  }
+}
+
+/* FEATURES */
+.features {
+  padding: 80px 0;
+  text-align: center;
+}
+
+.features-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.feature-card {
+  padding: 20px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+
+  p {
+    color: #94a3b8;
+    font-size: 14px;
+  }
+}
+
+/* RESULTS */
+.results {
+  padding: 80px 0;
+  text-align: center;
+}
+
+.results-box {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.result {
+  text-align: center;
+
+  h3 {
+    font-size: 24px;
+  }
+
+  p {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+}
+
+/* CONTACT */
+.contact {
+  padding: 80px 0;
+  text-align: center;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+}
+
+
+
+
+
