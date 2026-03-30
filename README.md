@@ -46,9 +46,9 @@ project/
 
 ### 1️⃣ Clone Repository
 
-git clone https://github.com/YOUR_USERNAME/ai-interview-prep.git
+git clone https://github.com/Ishan12337/AI-Preparation.git
 
-cd ai-interview-prep
+cd AI interview
 
 
 ---
