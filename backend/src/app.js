@@ -11,10 +11,7 @@ app.use(cookieParser());
 app.set("trust proxy", 1);
 
 app.use(cors({
-    origin:[
-    "http://localhost:5173",
-    "https://ai-preparation-frontend.onrender.com"
-  ],
+    origin: ["https://ai-preparation-frontend.onrender.com"],
     credentials: true,
 }))
 

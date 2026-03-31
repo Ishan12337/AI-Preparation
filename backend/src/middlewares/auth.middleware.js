@@ -2,11 +2,10 @@ const jwt = require("jsonwebtoken");
 
 const protect = (req, res, next) => {
   try {
-    const token =
-      req.cookies.token ||
-      (req.headers.authorization &&
-        req.headers.authorization.split(" ")[1]);
+    
+    const token = req.cookies.token;
 
+    console.log("COOKIES:", req.cookies);
     console.log("TOKEN:", token);
 
     if (!token) {
@@ -19,7 +18,7 @@ const protect = (req, res, next) => {
 
     console.log("DECODED:", decoded);
 
-    // 👇 IMPORTANT
+    
     req.userId = decoded.userId;
 
     next();
@@ -33,4 +32,3 @@ const protect = (req, res, next) => {
 };
 
 module.exports = protect;
-

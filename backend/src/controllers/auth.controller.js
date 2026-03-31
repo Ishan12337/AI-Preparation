@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
 
+
 /**
  * @route POST /api/auth/register
  * @desc Register a new user
@@ -12,17 +13,14 @@ async function registerUserController(req, res) {
   try {
     let { username, email, password } = req.body;
 
-    
     if (!username || !email || !password) {
       return res.status(400).json({
         message: "All fields are required",
       });
     }
 
-    
     email = email.toLowerCase();
 
-    
     const existingUser = await userModel.findOne({
       $or: [{ email }, { username }],
     });
@@ -33,7 +31,6 @@ async function registerUserController(req, res) {
       });
     }
 
-    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new userModel({
@@ -44,19 +41,18 @@ async function registerUserController(req, res) {
 
     await newUser.save();
 
-    
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 
- const isProd = process.env.NODE_ENV === "production";
+    //const isProd = process.env.NODE_ENV === "production";
 
-res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,          
-  sameSite: "none",    
-  maxAge: 24 * 60 * 60 * 1000,
-});
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     res.status(201).json({
       message: "User registered successfully",
@@ -91,7 +87,6 @@ async function loginUserController(req, res) {
       });
     }
 
-    
     email = email.toLowerCase();
 
     const user = await userModel.findOne({ email });
@@ -102,7 +97,6 @@ async function loginUserController(req, res) {
       });
     }
 
-   
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
@@ -111,19 +105,17 @@ async function loginUserController(req, res) {
       });
     }
 
-    
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 
-const isProd = process.env.NODE_ENV === "production";
 
-res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,          
-  sameSite: "none",        
-  maxAge: 24 * 60 * 60 * 1000,
-});
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     res.status(200).json({
       message: "User logged in successfully",
@@ -160,9 +152,16 @@ async function logoutUserController(req, res) {
 
   res.clearCookie("token");
 
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+
   res.status(200).json({
     message: "User logged out successfully",
   });
+
 }
 
 /**
@@ -173,7 +172,7 @@ async function logoutUserController(req, res) {
 
 const getMeController = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = await userModel.findById(req.userId).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
