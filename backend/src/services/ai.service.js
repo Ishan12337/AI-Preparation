@@ -1,7 +1,9 @@
-
+// ai.service.js
 const axios = require("axios");
 const { z } = require("zod");
+const pdfParse = require("pdf-parse");
 
+// Schema for validation
 const interviewreportSchema = z.object({
   title: z.string(),
   matchScore: z.number(),
@@ -34,7 +36,7 @@ const interviewreportSchema = z.object({
   ),
 });
 
-// Strong AI Call
+// AI call function
 const aiCall = async (prompt) => {
   try {
     const response = await axios.post(
@@ -43,15 +45,8 @@ const aiCall = async (prompt) => {
         model: process.env.AI_MODEL,
         temperature: 0.2,
         messages: [
-          {
-            role: "system",
-            content:
-              "You are a strict JSON generator. Always return valid JSON only.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
+          { role: "system", content: "You are a strict JSON generator. Always return valid JSON only." },
+          { role: "user", content: prompt },
         ],
       },
       {
@@ -75,23 +70,22 @@ const aiCall = async (prompt) => {
   }
 };
 
-// JSON Extractor (safer)
+// Extract JSON from AI text
 const extractJSON = (text) => {
   const match = text.match(/\{[\s\S]*\}/);
-
-  if (!match) {
-    throw new Error("No JSON found");
-  }
-
+  if (!match) throw new Error("No JSON found in AI response");
   return match[0];
 };
 
-// MAIN
-async function generateInterviewReport({
-  resume,
-  selfDescription,
-  jobDescription,
-}) {
+// MAIN: Generate Interview Report
+async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
+  if (!resume) throw new Error("Resume file missing");
+
+  // 1️⃣ Parse PDF
+  const pdfData = await pdfParse(resume.buffer);
+  const resumeText = pdfData.text;
+
+  // 2️⃣ Build AI prompt
   const prompt = `
 Generate interview report in STRICT JSON format.
 
@@ -105,34 +99,29 @@ Schema:
   "preparationPlan": [{ "day": number, "focus": "", "tasks": [""] }]
 }
 
-Resume: ${resume}
+Resume: ${resumeText}
 Self: ${selfDescription}
 Job: ${jobDescription}
 `;
 
+  // 3️⃣ Call AI
   const raw = await aiCall(prompt);
   console.log("RAW AI RESPONSE:", raw);
 
+  // 4️⃣ Extract & validate JSON
   try {
     const jsonString = extractJSON(raw);
     const parsed = JSON.parse(jsonString);
 
-    // fallback title
-    if (!parsed.title) {
-      parsed.title =
-        jobDescription?.split("\n")[0] || "Software Engineer";
-    }
+    if (!parsed.title) parsed.title = jobDescription?.split("\n")[0] || "Software Engineer";
 
     const validated = interviewreportSchema.parse(parsed);
-
     return validated;
   } catch (err) {
     console.error("PARSE ERROR:", err.message);
     console.log("RAW AI:", raw);
-
     throw new Error("Failed to parse AI response");
   }
 }
 
 module.exports = { generateInterviewReport };
-
