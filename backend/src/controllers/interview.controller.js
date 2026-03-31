@@ -18,7 +18,7 @@ async function generateInterviewReportController(req, res) {
       });
     }
 
-    
+    //req.user.userId
     const resumeContent = await (
       new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))
     ).getText();
@@ -48,7 +48,7 @@ async function generateInterviewReportController(req, res) {
 
     
     const interviewReport = await interviewReportModel.create({
-      user: req.user.userId, 
+      user: req.userId, 
       resume: resumeContent.text,
       selfDescription,
       jobDescription,
@@ -82,7 +82,7 @@ async function getInterviewReportByIdController(req, res) {
 
     const interviewReport = await interviewReportModel.findOne({
       _id: interviewId,
-      user: req.user.userId, 
+      user: req.userId, 
     });
 
     if (!interviewReport) {
@@ -112,11 +112,10 @@ async function getInterviewReportByIdController(req, res) {
  * @access Private
  */
 
-
 async function getAllInterviewController(req, res) {
   try {
     const interviewReports = await interviewReportModel
-      .find({ user: req.user.userId }) 
+      .find({ user: req.userId }) 
       .sort({ createdAt: -1 })
       .select("-resume -selfDescription -jobDescription -__v");
 
