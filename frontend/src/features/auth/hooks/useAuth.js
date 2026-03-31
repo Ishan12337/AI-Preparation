@@ -8,22 +8,22 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   const { user, setUser, loading, setLoading } = context;
 
-  const handleLogin = async ({ email, password }) => {
-  setLoading(true);
+//   const handleLogin = async ({ email, password }) => {
+//   setLoading(true);
 
-  try {
-    const data = await login({ email, password });
+//   try {
+//     const data = await login({ email, password });
 
-    if (!data) return false;
+//     if (!data) return false;
 
-    return true;
-  } catch (err) {
-    console.log("Login error:", err.response?.data || err.message);
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
+//     return true;
+//   } catch (err) {
+//     console.log("Login error:", err.response?.data || err.message);
+//     return false;
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
 
 //   const handleRegister = async ({ username, email, password }) => {
@@ -44,6 +44,50 @@ export const useAuth = () => {
 //     setLoading(false);
 //   }
 // };
+const handleLogin = async ({ email, password }) => {
+  setLoading(true);
+
+  try {
+    const data = await login({ email, password });
+
+    if (!data) return false;
+
+    // 🔥 IMPORTANT: immediately fetch user
+    const me = await getMe();
+
+    if (me?.user) {
+      setUser(me.user);   // ✅ Navbar update
+      return true;
+    }
+
+    return false;
+
+  } catch (err) {
+    console.log("Login error:", err.response?.data || err.message);
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+// const handleRegister = async ({ username, email, password }) => {
+//   setLoading(true);
+
+//   try {
+//     const data = await register({ username, email, password });
+
+//     if (!data) return false;
+
+//     return true;
+
+//   } catch (err) {
+//     console.log("Register error:", err.response?.data || err.message);
+//     return false;
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
 const handleRegister = async ({ username, email, password }) => {
   setLoading(true);
@@ -53,7 +97,14 @@ const handleRegister = async ({ username, email, password }) => {
 
     if (!data) return false;
 
-    return true;
+    const me = await getMe();
+
+    if (me?.user) {
+      setUser(me.user);   // ✅ Navbar update
+      return true;
+    }
+
+    return false;
 
   } catch (err) {
     console.log("Register error:", err.response?.data || err.message);
@@ -63,19 +114,30 @@ const handleRegister = async ({ username, email, password }) => {
   }
 };
 
+  // const handleLogout = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const data = await logout();
+  //     console.log("Logout response: ", data);
+  //     setUser(null);
+  //   } catch (err) {
+  //     console.log("error come when logout as a backend ", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const handleLogout = async () => {
+  setLoading(true);
+  try {
+    await logout();
+    setUser(null);   // ✅ Navbar वापस change
+  } catch (err) {
+    console.log(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      const data = await logout();
-      console.log("Logout response: ", data);
-      setUser(null);
-    } catch (err) {
-      console.log("error come when logout as a backend ", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
 useEffect(() => {
   const getAndSetUser = async () => {
@@ -88,7 +150,7 @@ useEffect(() => {
         setUser(null);
       }
     } catch (err) {
-      // 🔥 Don't spam console like a beginner
+      
       if (err.response?.status !== 401) {
         console.log("getMe error:", err.message);
       }
