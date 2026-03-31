@@ -9,45 +9,57 @@ export const useAuth = () => {
   const { user, setUser, loading, setLoading } = context;
 
   const handleLogin = async ({ email, password }) => {
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const data = await login({ email, password });
+  try {
+    const data = await login({ email, password });
 
-      if (!data || !data.user) {
-        return false;
-      }
+    if (!data) return false;
 
-      setUser(data.user);
+    // 🔥 IMPORTANT: fetch user from cookie session
+    const me = await getMe();
+
+    if (me?.user) {
+      setUser(me.user);
       return true;
-    } catch (err) {
-      console.log("Login error:", err.response?.data || err.message);
-      return false; 
-    } finally {
-      setLoading(false);
     }
-  };
+
+    return false;
+  } catch (err) {
+    console.log("Login error:", err.response?.data || err.message);
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   const handleRegister = async ({ username, email, password }) => {
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const data = await register({ username, email, password });
+  try {
+    const data = await register({ username, email, password });
 
-      if (!data || !data.user) {
-        return false;
-      }
+    if (!data) return false;
 
-      setUser(data.user);
+    const me = await getMe();
+
+    if (me?.user) {
+      setUser(me.user);
       return true;
-    } catch (err) {
-      console.log("Register error:", err.response?.data || err.message);
-      return false;
-    } finally {
-      setLoading(false);
     }
-  };
+
+    return false;
+  } catch (err) {
+    console.log("Register error:", err.response?.data || err.message);
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const handleLogout = async () => {
     setLoading(true);
@@ -61,11 +73,11 @@ export const useAuth = () => {
       setLoading(false);
     }
   };
-  useEffect(() => {
+
+useEffect(() => {
   const getAndSetUser = async () => {
     try {
       const data = await getMe();
-
 
       if (data?.user) {
         setUser(data.user);
@@ -73,16 +85,18 @@ export const useAuth = () => {
         setUser(null);
       }
     } catch (err) {
-      console.log("getMe failed ", err);
+      // 🔥 Don't spam console like a beginner
+      if (err.response?.status !== 401) {
+        console.log("getMe error:", err.message);
+      }
       setUser(null);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
   getAndSetUser();
 }, []);
-
 
   return { user, loading, handleRegister, handleLogin, handleLogout };
 };

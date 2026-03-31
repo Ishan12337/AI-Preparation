@@ -1,6 +1,6 @@
+const jwt = require("jsonwebtoken");
 
-const jwt = require("jsonwebtoken")
-const tokenBlicklistModel = require("../models/blacklist.model")
+
 
 
 async function authUser(req,res,next){
@@ -34,8 +34,44 @@ async function authUser(req,res,next){
     }
 }
 
-module.exports = {
-    authUser
+
+
+
+
+
+async function authenticateToken(req, res, next) {
+  try {
+    // Get token from cookie OR header
+    const token =
+      req.cookies.token ||
+      (req.headers.authorization &&
+        req.headers.authorization.split(" ")[1]);
+
+    console.log("Incoming Cookies:", req.cookies);
+    console.log("Token:", token);
+
+    if (!token) {
+      return res.status(401).json({
+        message: "Unauthorized - No token",
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    console.log("Decoded:", decoded);
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    console.error("Auth Error:", err.message);
+
+    return res.status(401).json({
+      message: "Unauthorized - Invalid token",
+    });
+  }
 }
+
+module.exports = { authUser, authenticateToken };
 
 

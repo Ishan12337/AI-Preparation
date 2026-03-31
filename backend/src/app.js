@@ -7,9 +7,13 @@ const cors = require("cors")
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.set("trust proxy", 1);
+
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
+    origin: "https://ai-preparation-frontend.onrender.com",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
 }))
 
 /**require all the routes here */

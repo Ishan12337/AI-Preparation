@@ -9,7 +9,7 @@ const {
 } = require('../controllers/auth.controller');
 
 
-const {authUser} = require("../middlewares/auth.middleware")
+const {authenticateToken} = require("../middlewares/auth.middleware")
 
 
 /**
@@ -44,7 +44,7 @@ authRouter.get('/logout', logoutUserController)
  * @access private
  * 
  */
-authRouter.get("/get-me", authUser, getMeController)
+authRouter.get("/get-me", authenticateToken, getMeController)
 
 
 module.exports = authRouter;

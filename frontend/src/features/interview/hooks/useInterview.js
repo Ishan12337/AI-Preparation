@@ -7,6 +7,7 @@ import {
 
 import { useContext, useEffect } from "react";
 import { InterviewContext } from "../context/interview.context";
+import { useAuth } from "../../auth/hooks/useAuth"
 
 export const useInterview = () => {
   const context = useContext(InterviewContext);
@@ -14,6 +15,10 @@ export const useInterview = () => {
   if (!context) {
     throw new Error("useInterview must be used within InterviewProvider");
   }
+
+
+const { user, loading: authLoading } = useAuth();
+
 
   const {
     loading,
@@ -72,10 +77,12 @@ export const useInterview = () => {
     }
   };
 
-  
+
   useEffect(() => {
+  if (!authLoading && user) {
     getReports();
-  }, []);
+  }
+}, [user, authLoading]);
 
   return {
     loading,
