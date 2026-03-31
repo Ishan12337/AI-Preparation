@@ -16,6 +16,7 @@ export async function register({ username, email, password }) {
         return response.data;
     } catch (err) {
         console.log("Error connecting to backend during register");
+        console.log("REGISTER ERROR:", err.response?.data || err.message);
         throw err;
     }
 }
