@@ -6,6 +6,11 @@ const {
 const interviewReportModel = require("../models/interviewReport.model");
 
 async function generateInterviewReportController(req, res) {
+
+  console.log("REQ FILE:", req.file);
+  console.log("REQ BODY:", req.body);
+
+
   try {
     if (!req.file) return res.status(400).json({ message: "Resume file is required" });
 

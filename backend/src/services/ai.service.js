@@ -111,6 +111,7 @@ Job: ${jobDescription}
 `;
 
   const raw = await aiCall(prompt);
+  console.log("RAW AI RESPONSE:", raw);
 
   try {
     const jsonString = extractJSON(raw);
