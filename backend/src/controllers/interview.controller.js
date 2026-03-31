@@ -13,6 +13,7 @@ const interviewReportModel = require("../models/interviewReport.model");
  */
 async function generateInterviewReportController(req, res) {
   try {
+    // Check if resume file is uploaded
     if (!req.file) {
       return res.status(400).json({ message: "Resume file is required" });
     }
@@ -29,7 +30,7 @@ async function generateInterviewReportController(req, res) {
       });
     }
 
-    // Call AI service
+    // Call AI service to generate report
     const interviewReportByAI = await generateInterviewReport({
       resume: resumeText,
       selfDescription,
@@ -42,7 +43,7 @@ async function generateInterviewReportController(req, res) {
 
     // Save report in DB
     const interviewReport = await interviewReportModel.create({
-      user: req.userId,
+      user: req.userId, // from auth middleware
       resume: resumeText,
       selfDescription,
       jobDescription,
@@ -62,7 +63,7 @@ async function generateInterviewReportController(req, res) {
   }
 }
 
-/** Get single report by ID */
+/** @desc Get single report by ID */
 async function getInterviewReportByIdController(req, res) {
   try {
     const { interviewId } = req.params;
@@ -72,8 +73,9 @@ async function getInterviewReportByIdController(req, res) {
       user: req.userId,
     });
 
-    if (!interviewReport)
+    if (!interviewReport) {
       return res.status(404).json({ message: "Interview report not found" });
+    }
 
     return res.status(200).json({
       message: "Interview report fetched successfully",
@@ -85,7 +87,7 @@ async function getInterviewReportByIdController(req, res) {
   }
 }
 
-/** Get all reports of logged-in user */
+/** @desc Get all reports of logged-in user */
 async function getAllInterviewController(req, res) {
   try {
     const reports = await interviewReportModel
