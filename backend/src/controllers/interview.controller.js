@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const pdfParse = require("pdf-parse");
-const {generateInterviewReport, generateResumePDF} = require("../services/ai.service");
+const {
+  generateInterviewReport,
+  generateResumePDF,
+} = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
-
 
 /**
  * @desc Generate interview report using resume + self description + job description
@@ -11,56 +13,56 @@ const interviewReportModel = require("../models/interviewReport.model");
  */
 async function generateInterviewReportController(req, res) {
   try {
-   
     if (!req.file) {
       return res.status(400).json({
         message: "Resume file is required",
       });
     }
 
-    //req.user.userId
-    const resumeContent = await (
-      new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))
+    const resumeContent = await new pdfParse.PDFParse(
+      Uint8Array.from(req.file.buffer),
     ).getText();
 
     const { selfDescription, jobDescription } = req.body;
 
-    
     if (!selfDescription || !jobDescription) {
       return res.status(400).json({
         message: "Self description and job description are required",
       });
     }
 
-   
     const interviewReportByAI = await generateInterviewReport({
       resume: resumeContent.text,
       selfDescription,
       jobDescription,
     });
 
-    
     if (!interviewReportByAI) {
       return res.status(500).json({
         message: "AI failed to generate report",
       });
     }
 
-    
+    // const interviewReport = await interviewReportModel.create({
+    //   user: req.userId,
+    //   resume: resumeContent.text,
+    //   selfDescription,
+    //   jobDescription,
+    //   ...interviewReportByAI,
+    // });
+
     const interviewReport = await interviewReportModel.create({
-      user: req.userId, 
+      user: req.userId, // from auth middleware
       resume: resumeContent.text,
       selfDescription,
       jobDescription,
       ...interviewReportByAI,
     });
 
-    
     return res.status(201).json({
       message: "Interview report generated successfully",
       interviewReport,
     });
-
   } catch (error) {
     console.error("CONTROLLER ERROR:", error.message);
 
@@ -71,7 +73,7 @@ async function generateInterviewReportController(req, res) {
   }
 }
 
-/**
+/** const interviewReport
  * @desc Get single interview report by ID
  * @route GET /api/interview/report/:interviewId
  * @access Private
@@ -82,7 +84,7 @@ async function getInterviewReportByIdController(req, res) {
 
     const interviewReport = await interviewReportModel.findOne({
       _id: interviewId,
-      user: req.userId, 
+      user: req.userId,
     });
 
     if (!interviewReport) {
@@ -95,7 +97,6 @@ async function getInterviewReportByIdController(req, res) {
       message: "Interview report fetched successfully",
       interviewReport,
     });
-
   } catch (error) {
     console.error("GET BY ID ERROR:", error.message);
 
@@ -115,12 +116,11 @@ async function getInterviewReportByIdController(req, res) {
 async function getAllInterviewController(req, res) {
   try {
     const interviewReports = await interviewReportModel
-      .find({ user: req.userId }) 
+      .find({ user: req.userId })
       .sort({ createdAt: -1 })
       .select("-resume -selfDescription -jobDescription -__v");
 
     return res.status(200).json(interviewReports);
-
   } catch (error) {
     console.error("GET ALL ERROR:", error.message);
 
@@ -131,15 +131,8 @@ async function getAllInterviewController(req, res) {
   }
 }
 
-
 module.exports = {
   generateInterviewReportController,
   getInterviewReportByIdController,
   getAllInterviewController,
-  
 };
-
-
-
-
-

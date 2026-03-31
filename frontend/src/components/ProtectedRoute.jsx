@@ -16,7 +16,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ user exists
+  // user exists
   return children;
 };
 

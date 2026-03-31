@@ -8,42 +8,7 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   const { user, setUser, loading, setLoading } = context;
 
-//   const handleLogin = async ({ email, password }) => {
-//   setLoading(true);
 
-//   try {
-//     const data = await login({ email, password });
-
-//     if (!data) return false;
-
-//     return true;
-//   } catch (err) {
-//     console.log("Login error:", err.response?.data || err.message);
-//     return false;
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
-
-//   const handleRegister = async ({ username, email, password }) => {
-  
-//     setLoading(true);
-
-//   try {
-//     const data = await register({ username, email, password });
-
-//     if (!data) return false;
-
-//       return true;
-//    // return false;
-//   } catch (err) {
-//     console.log("Register error:", err.response?.data || err.message);
-//     return false;
-//   } finally {
-//     setLoading(false);
-//   }
-// };
 const handleLogin = async ({ email, password }) => {
   setLoading(true);
 
@@ -71,23 +36,6 @@ const handleLogin = async ({ email, password }) => {
 };
 
 
-// const handleRegister = async ({ username, email, password }) => {
-//   setLoading(true);
-
-//   try {
-//     const data = await register({ username, email, password });
-
-//     if (!data) return false;
-
-//     return true;
-
-//   } catch (err) {
-//     console.log("Register error:", err.response?.data || err.message);
-//     return false;
-//   } finally {
-//     setLoading(false);
-//   }
-// };
 
 const handleRegister = async ({ username, email, password }) => {
   setLoading(true);
@@ -114,19 +62,7 @@ const handleRegister = async ({ username, email, password }) => {
   }
 };
 
-  // const handleLogout = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const data = await logout();
-  //     console.log("Logout response: ", data);
-  //     setUser(null);
-  //   } catch (err) {
-  //     console.log("error come when logout as a backend ", err);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-const handleLogout = async () => {
+  const handleLogout = async () => {
   setLoading(true);
   try {
     await logout();
