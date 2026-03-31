@@ -11,9 +11,11 @@ app.use(cookieParser());
 app.set("trust proxy", 1);
 
 app.use(cors({
-    origin: "https://ai-preparation-frontend.onrender.com",
+    origin:[
+    "http://localhost:5173",
+    "https://ai-preparation-frontend.onrender.com"
+  ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
 }))
 
 /**require all the routes here */
