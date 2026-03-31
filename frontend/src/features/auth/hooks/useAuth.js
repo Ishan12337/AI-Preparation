@@ -16,15 +16,7 @@ export const useAuth = () => {
 
     if (!data) return false;
 
-    // 🔥 IMPORTANT: fetch user from cookie session
-    const me = await getMe();
-
-    if (me?.user) {
-      setUser(me.user);
-      return true;
-    }
-
-    return false;
+    return true;
   } catch (err) {
     console.log("Login error:", err.response?.data || err.message);
     return false;
@@ -34,8 +26,26 @@ export const useAuth = () => {
 };
 
 
+//   const handleRegister = async ({ username, email, password }) => {
+  
+//     setLoading(true);
 
-  const handleRegister = async ({ username, email, password }) => {
+//   try {
+//     const data = await register({ username, email, password });
+
+//     if (!data) return false;
+
+//       return true;
+//    // return false;
+//   } catch (err) {
+//     console.log("Register error:", err.response?.data || err.message);
+//     return false;
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+const handleRegister = async ({ username, email, password }) => {
   setLoading(true);
 
   try {
@@ -43,14 +53,8 @@ export const useAuth = () => {
 
     if (!data) return false;
 
-    const me = await getMe();
+    return true;
 
-    if (me?.user) {
-      setUser(me.user);
-      return true;
-    }
-
-    return false;
   } catch (err) {
     console.log("Register error:", err.response?.data || err.message);
     return false;
@@ -58,7 +62,6 @@ export const useAuth = () => {
     setLoading(false);
   }
 };
-
 
 
   const handleLogout = async () => {
