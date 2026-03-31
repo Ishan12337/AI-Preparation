@@ -1,5 +1,5 @@
 const express = require("express")
-const authMiddleware = require("../middlewares/auth.middleware")
+const protect = require("../middlewares/auth.middleware")
 const interviewController = require("../controllers/interview.controller")
 const upload = require("../middlewares/file.middleware")
 
@@ -11,7 +11,7 @@ const interviewRouter = express.Router()
  * @desc generate new interview report on the basis of user self description
  * @access private
  */
-interviewRouter.post("/", authMiddleware.authUser, upload.single("resume"), interviewController.generateInterviewReportController)
+interviewRouter.post("/", protect, upload.single("resume"), interviewController.generateInterviewReportController)
 
 
 
@@ -20,7 +20,7 @@ interviewRouter.post("/", authMiddleware.authUser, upload.single("resume"), inte
  * @desc get interview report
  * @access private
  */
-interviewRouter.get("/report/:interviewId", authMiddleware.authUser,interviewController.getInterviewReportByIdController)
+interviewRouter.get("/report/:interviewId", protect,interviewController.getInterviewReportByIdController)
 
 
 
@@ -29,7 +29,7 @@ interviewRouter.get("/report/:interviewId", authMiddleware.authUser,interviewCon
  * @desc get all interview reports of logged in user.
  * @access private
  */
-interviewRouter.get("/", authMiddleware.authUser, interviewController.getAllInterviewController)
+interviewRouter.get("/", protect , interviewController.getAllInterviewController)
 
 
 

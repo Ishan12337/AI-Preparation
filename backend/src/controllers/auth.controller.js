@@ -170,19 +170,20 @@ async function logoutUserController(req, res) {
  * @desc get the current logged in user details.
  * @access private
  */
-async function getMeController(req, res) {
-  const user = await userModel.findById(req.user.userId);
 
-  res.status(200).json({
-    message: "user details fatched successfully",
-    user: {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    },
-   
-  });
-}
+const getMeController = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 module.exports = {
   registerUserController,
