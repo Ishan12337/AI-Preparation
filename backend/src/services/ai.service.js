@@ -39,6 +39,7 @@ const interviewreportSchema = z.object({
 // AI call function
 const aiCall = async (prompt) => {
   try {
+    console.log("Calling AI with:", process.env.GENAI, process.env.AI_MODEL, !!process.env.OPENROUTER_API_KEY);
     const response = await axios.post(
       process.env.GENAI,
       {
