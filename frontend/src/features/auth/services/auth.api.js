@@ -50,3 +50,15 @@ export async function getMe() {
         throw err;
     }
 }
+
+// export const getMe = async () => {
+//   try {
+//     const res = await api.get("/auth/get-me");
+//     return res.data;
+//   } catch (err) {
+//     if (err.response?.status === 401) {
+//       return null; // silently ignore
+//     }
+//     throw err;
+//   }
+// };

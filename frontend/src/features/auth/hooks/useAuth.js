@@ -1,78 +1,80 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../context/auth.context";
 import { login, register, logout, getMe } from "../services/auth.api";
-import { useEffect } from "react";
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   const { user, setUser, loading, setLoading } = context;
 
+  // 🔥 LOGIN
+  const handleLogin = async ({ email, password }) => {
+    setLoading(true);
 
-const handleLogin = async ({ email, password }) => {
-  setLoading(true);
+    try {
+      await login({ email, password });
 
-  try {
-    const data = await login({ email, password });
+      // ⏳ small delay for UX
+      await new Promise((res) => setTimeout(res, 1000));
 
-    if (!data) return false;
+      const me = await getMe();
 
-    // 🔥 IMPORTANT: immediately fetch user
-    const me = await getMe();
+      if (me?.user) {
+        setUser(me.user);
+        return true;
+      }
 
-    if (me?.user) {
-      setUser(me.user);   // ✅ Navbar update
-      return true;
+      return false;
+    } catch (err) {
+      console.log("Login error:", err.response?.data || err.message);
+      return false;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return false;
+  // 🔥 REGISTER (auto-login)
+  const handleRegister = async ({ username, email, password }) => {
+    setLoading(true);
 
-  } catch (err) {
-    console.log("Login error:", err.response?.data || err.message);
-    return false;
-  } finally {
-    setLoading(false);
+    try {
+      await register({ username, email, password });
+
+      // ⏳ delay (important for cookie stability + UX)
+      await new Promise((res) => setTimeout(res, 1000));
+
+      const me = await getMe();
+
+      if (me?.user) {
+        setUser(me.user);
+        return true;
+      }
+
+      return false;
+    }catch (err) {
+  const status = err.response?.status;
+
+  if (status === 409) {
+    return "exists"; // 🔥 custom signal
   }
-};
 
-
-
-const handleRegister = async ({ username, email, password }) => {
-  setLoading(true);
-
-  try {
-    const data = await register({ username, email, password });
-
-    if (!data) return false;
-
-    const me = await getMe();
-
-    if (me?.user) {
-      setUser(me.user);   // ✅ Navbar update
-      return true;
+  return false;
+} finally {
+      setLoading(false);
     }
+  };
 
-    return false;
-
-  } catch (err) {
-    console.log("Register error:", err.response?.data || err.message);
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
-
+  // 🔥 LOGOUT
   const handleLogout = async () => {
-  setLoading(true);
-  try {
-    await logout();
-    setUser(null);   // ✅ Navbar वापस change
-  } catch (err) {
-    console.log(err);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      await logout();
+      setUser(null);
+    } catch (err) {
+      console.log("Logout error:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
 useEffect(() => {
@@ -86,10 +88,7 @@ useEffect(() => {
         setUser(null);
       }
     } catch (err) {
-      
-      if (err.response?.status !== 401) {
-        console.log("getMe error:", err.message);
-      }
+      console.log("error come ", err)
       setUser(null);
     } finally {
       setLoading(false);
@@ -98,6 +97,8 @@ useEffect(() => {
 
   getAndSetUser();
 }, []);
+
+
 
   return { user, loading, handleRegister, handleLogin, handleLogout };
 };

@@ -2,6 +2,7 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
+const emailService = require("../services/email.service");
 
 
 /**
@@ -9,74 +10,159 @@ const tokenBlacklistModel = require("../models/blacklist.model");
  * @desc Register a new user
  * @access Public
  */
+// async function registerUserController(req, res) {
+//   try {
+//     let { username, email, password } = req.body;
+
+//     if (!username || !email || !password) {
+//       return res.status(400).json({
+//         message: "All fields are required",
+//       });
+//     }
+
+//     email = email.toLowerCase();
+
+//     const existingUser = await userModel.findOne({
+//       $or: [{ email }, { username }],
+//     });
+
+//     if (existingUser) {
+//       return res.status(409).json({
+//         message: "User already exists",
+//       });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const newUser = new userModel({
+//       username,
+//       email,
+//       password: hashedPassword,
+//     });
+
+//     await newUser.save();
+
+//     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
+//       expiresIn: "1d",
+//     });
+
+   
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: false,
+//       sameSite: "lax",
+//       maxAge: 24 * 60 * 60 * 1000,
+//     });
+
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       user: {
+//         id: newUser._id,
+//         username: newUser.username,
+//         email: newUser.email,
+//       },
+//     });
+      
+//     await emailService.sendRegisterUserEmail(newUser.email, newUser.username);
+
+
+
+//   } catch (error) {
+//     console.error("Register Error:", error);
+
+//     res.status(500).json({
+//       message: "Server error",
+//       error: error.message,
+//     });
+//   }
+// }
+
 async function registerUserController(req, res) {
   try {
     let { username, email, password } = req.body;
 
+    // ✅ Validate input
     if (!username || !email || !password) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    email = email.toLowerCase();
+    username = username.trim();
+    email = email.toLowerCase().trim();
 
-    const existingUser = await userModel.findOne({
-      $or: [{ email }, { username }],
-    });
-
+    // ✅ Check if user already exists
+    const existingUser = await userModel.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(409).json({
-        message: "User already exists",
-      });
+      return res.status(409).json({ message: "User already exists" });
     }
 
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new userModel({
-      username,
-      email,
-      password: hashedPassword,
-    });
+    // ✅ Create new user
+    const newUser = new userModel({ username, email, password: hashedPassword });
 
-    await newUser.save();
+    try {
+      await newUser.save();
+    } catch (err) {
+      // Handle duplicate key race conditions
+      if (err.code === 11000) {
+        return res.status(409).json({ message: "Email or username already exists" });
+      }
+      throw err;
+    }
 
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    // ✅ Generate JWT token
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-   
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: true,
-    //   sameSite: "none",
-    //   maxAge: 24 * 60 * 60 * 1000,
-    // });
-
+    // ✅ Set cookie
     res.cookie("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 24 * 60 * 60 * 1000,
-});
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
+    // ✅ Send response first
     res.status(201).json({
       message: "User registered successfully",
-      user: {
-        id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-      },
+      user: { id: newUser._id, username: newUser.username, email: newUser.email },
     });
+
+    // ✅ Send welcome email asynchronously
+    emailService.sendRegisterUserEmail(newUser.email, newUser.username)
+      .catch(err => console.error("Email send failed:", err));
+
   } catch (error) {
     console.error("Register Error:", error);
-
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * @route POST /api/auth/login
@@ -116,18 +202,13 @@ async function loginUserController(req, res) {
     });
 
 
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: true,
-    //   sameSite: "none",
-    //   maxAge: 24 * 60 * 60 * 1000,
-    // });
-   res.cookie("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 24 * 60 * 60 * 1000,
-});
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
 
 
 
@@ -164,20 +245,11 @@ async function logoutUserController(req, res) {
     await tokenBlacklistModel.create({ token });
   }
 
-  res.clearCookie("token");
-
-  // res.clearCookie("token", {
-  //   httpOnly: true,
-  //   secure: true,
-  //   sameSite: "none",
-  // });
   res.clearCookie("token", {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-});
-
-
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  });
 
   res.status(200).json({
     message: "User logged out successfully",

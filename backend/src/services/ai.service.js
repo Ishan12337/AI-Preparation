@@ -1,7 +1,13 @@
 // ai.service.js
 const axios = require("axios");
 const { z } = require("zod");
-const pdfParse = require("pdf-parse");
+//const pdfParse = require("pdf-parse");
+//const pdfParse = require("pdf-parse").default || require("pdf-parse");
+//const pdfParseLib = require("pdf-parse");
+//const pdfParse = pdfParseLib.default || pdfParseLib;
+const pdfParse = (...args) => import("pdf-parse").then(m => m.default(...args));
+
+
 
 // Strict JSON schema
 const interviewreportSchema = z.object({
@@ -88,12 +94,38 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
   if (!resume) throw new Error("Resume file missing");
 
   // 1️⃣ Parse PDF
+  console.log("Parsing PDF...");
+  //const pdfData = await pdfParse(resume.buffer);
   const pdfData = await pdfParse(resume.buffer);
   const resumeText = pdfData.text;
+  console.log("TYPE OF pdfParse:", typeof pdfParse);
 
   // 2️⃣ Build AI prompt
-  const prompt = `
-Generate interview report in STRICT JSON format.
+//   const prompt = `
+// Generate interview report in STRICT JSON format.
+
+// Schema:
+// {
+//   "title": "string",
+//   "matchScore": number,
+//   "technicalQuestions": [{ "question": "", "intention": "", "answer": "" }],
+//   "behavioralQuestions": [{ "question": "", "intention": "", "answer": "" }],
+//   "skillGaps": [{ "skill": "", "severity": "low|medium|high" }],
+//   "preparationPlan": [{ "day": number, "focus": "", "tasks": [""] }]
+// }
+
+// Resume: ${resumeText}
+// Self: ${selfDescription}
+// Job: ${jobDescription}
+// `;
+const prompt = `
+Return ONLY valid JSON.
+Do NOT include any explanation or text outside JSON.
+
+Rules:
+- matchScore MUST be a number (not string)
+- All fields must exist
+- skillGaps severity must be one of: low, medium, high
 
 Schema:
 {
@@ -116,7 +148,25 @@ Job: ${jobDescription}
 
   // 4️⃣ Extract JSON & validate
   try {
-    const jsonString = extractJSON(raw);
+  //  const jsonString = extractJSON(raw);
+  let jsonString;
+try {
+  jsonString = extractJSON(raw);
+} catch (e) {
+  console.error("NO JSON FOUND:", raw);
+  throw new Error("AI returned invalid format");
+}
+
+
+
+
+
+
+
+
+
+
+
     const parsed = JSON.parse(jsonString);
 
     // fallback title if missing
@@ -124,8 +174,54 @@ Job: ${jobDescription}
       parsed.title = jobDescription?.split("\n")[0] || "Software Engineer";
     }
 
-    const validated = interviewreportSchema.parse(parsed);
-    return validated;
+   // const validated = interviewreportSchema.parse(parsed);
+   // return validated;
+
+//   try {
+//   const validated = interviewreportSchema.parse(parsed);
+//   return validated;
+// } catch (err) {
+//   console.error("ZOD ERROR:", err.errors);
+
+ try {
+  const validated = interviewreportSchema.parse(parsed);
+
+  // 🔥 normalize score (important)
+  validated.matchScore =
+    validated.matchScore <= 1
+      ? validated.matchScore * 100
+      : validated.matchScore;
+
+  return validated;
+
+} catch (err) {
+  console.error("ZOD ERROR:", err.errors);
+
+  // 🔥 fallback (no crash)
+  return {
+    title: parsed.title || "Interview Report",
+    matchScore: parsed.matchScore <= 1
+      ? parsed.matchScore * 100
+      : parsed.matchScore || 50,
+    technicalQuestions: parsed.technicalQuestions || [],
+    behavioralQuestions: parsed.behavioralQuestions || [],
+    skillGaps: parsed.skillGaps || [],
+    preparationPlan: parsed.preparationPlan || [],
+  };
+}
+
+
+  
+  return {
+    title: parsed.title || "Interview Report",
+    matchScore: Number(parsed.matchScore) || 50,
+    technicalQuestions: parsed.technicalQuestions || [],
+    behavioralQuestions: parsed.behavioralQuestions || [],
+    skillGaps: parsed.skillGaps || [],
+    preparationPlan: parsed.preparationPlan || [],
+  };
+
+
   } catch (err) {
     console.error("PARSE ERROR:", err.message);
     console.log("RAW AI RESPONSE FOR DEBUG:", raw);
