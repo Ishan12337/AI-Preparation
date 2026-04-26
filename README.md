@@ -14,7 +14,6 @@ project/
 ├── README.md
 └── .env
 
-
 ---
 
 ## 🌟 Features
