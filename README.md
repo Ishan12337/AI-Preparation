@@ -2,6 +2,7 @@
 
  A full-stack AI-powered web application that helps users prepare for interviews using smart resume analysis, ATS scoring, and AI-generated questions.
 
+
  ---
 
  ## 📂 Project Structure
