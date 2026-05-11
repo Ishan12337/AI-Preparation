@@ -67,7 +67,6 @@ git clone https://github.com/Ishan12337/AI-Preparation.git
 
 cd AI interview
 
-
 ---
 
 ### 3️⃣ Setup Frontend 
